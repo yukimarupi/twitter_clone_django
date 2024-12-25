@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tweet List</title>
+</head>
+<body>
+    <h1>Tweet List</h1>
+    <ul>
+        {% for tweet in tweets %}
+            <li>
+                <strong>{{ tweet.user.username }}</strong>: {{ tweet.content }}
+                <br>
+                <small>{{ tweet.created_at }}</small>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
