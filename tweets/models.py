@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 
+
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField(max_length=280)
@@ -20,6 +21,8 @@ class Like(models.Model):
     def __str__(self):
         return f"{self.user.username} likes {self.tweet.id}"
 
+
+# 追加部分
 def tweet_like(request, tweet_id):
     tweet = Tweet.objects.get(id=tweet_id)
     if tweet.like_set.filter(user=request.user).exists():
@@ -37,3 +40,11 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.username} follows {self.following.username}"
+
+class Retweet(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    original_tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name='retweets')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} retweeted {self.original_tweet.id}"

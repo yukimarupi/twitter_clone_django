@@ -1,8 +1,15 @@
 from django.shortcuts import render, redirect
-from .forms import TweetForm
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
-from .models import Tweet
+from tweets.forms import TweetForm  # DjangoのUserモデル
+from .models import Retweet, Tweet, Follow  # TweetとFollowモデル
+
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
+
+
 
 def tweet_list(request):
     tweets = Tweet.objects.all().order_by('-created_at')  # 最新順
@@ -20,3 +27,41 @@ def tweet_create(request):
     else:
         form = TweetForm()
     return render(request, 'tweets/tweet_create.html', {'form': form})
+
+@login_required
+def tweet_like(request, tweet_id):
+    tweet = Tweet.objects.get(id=tweet_id)
+    if tweet.like_set.filter(user=request.user).exists():
+        tweet.like_set.filter(user=request.user).delete()
+        liked = False
+    else:
+        tweet.like_set.create(user=request.user)
+        liked = True
+    return JsonResponse({'liked': liked, 'likes_count': tweet.like_set.count()})
+
+@login_required
+def follow_user(request, user_id):
+    user_to_follow = User.objects.get(id=user_id)
+    if request.user.following.filter(following=user_to_follow).exists():
+        request.user.following.filter(following=user_to_follow).delete()
+        following = False
+    else:
+        Follow.objects.create(follower=request.user, following=user_to_follow)
+        following = True
+    return JsonResponse({'following': following})
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')  # 登録後にログインページへリダイレクト
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+@login_required
+def retweet(request, tweet_id):
+    original_tweet = Tweet.objects.get(id=tweet_id)
+    Retweet.objects.create(user=request.user, original_tweet=original_tweet)
+    return JsonResponse({'message': 'Retweeted successfully!'})

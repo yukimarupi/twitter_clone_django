@@ -9,12 +9,43 @@
     <h1>Tweet List</h1>
     <ul>
         {% for tweet in tweets %}
-            <li>
-                <strong>{{ tweet.user.username }}</strong>: {{ tweet.content }}
-                <br>
-                <small>{{ tweet.created_at }}</small>
-            </li>
+        <li>
+            <strong>{{ tweet.user.username }}</strong>: {{ tweet.content }}
+            <br>
+            <small>{{ tweet.created_at }}</small>
+            <button data-id="{{ tweet.id }}" class="retweet-btn">Retweet</button>
+            <button data-id="{{ tweet.id }}" class="like-btn">Like ({{ tweet.like_set.count }})</button>
+        </li>
         {% endfor %}
     </ul>
+
+    <script>
+        // 共通のイベント登録関数
+        function handleButtonClick(className, urlSuffix, callback) {
+            document.querySelectorAll(className).forEach(button => {
+                button.addEventListener('click', () => {
+                    const tweetId = button.getAttribute('data-id');
+                    fetch(`/${tweetId}/${urlSuffix}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => callback(button, data));
+                });
+            });
+        }
+
+        // リツイートボタンの処理
+        handleButtonClick('.retweet-btn', 'retweet', (button, data) => {
+            alert(data.message);
+        });
+
+        // いいねボタンの処理
+        handleButtonClick('.like-btn', 'like', (button, data) => {
+            button.textContent = `Like (${data.likes_count})`;
+        });
+    </script>
 </body>
 </html>
