@@ -22,30 +22,44 @@
     <script>
         // 共通のイベント登録関数
         function handleButtonClick(className, urlSuffix, callback) {
-            document.querySelectorAll(className).forEach(button => {
-                button.addEventListener('click', () => {
-                    const tweetId = button.getAttribute('data-id');
-                    fetch(`/${tweetId}/${urlSuffix}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}',
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => callback(button, data));
-                });
+    document.querySelectorAll(className).forEach(button => {
+        button.addEventListener('click', () => {
+            const tweetId = button.getAttribute('data-id');
+            fetch(`/${tweetId}/${urlSuffix}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || '不明なエラーが発生しました。');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => callback(button, data))
+            .catch(error => {
+                // 日本語のエラーメッセージをユーザーに通知
+                console.error('エラー:', error.message);
+                alert(error.message);  // 日本語のエラーメッセージを表示
             });
-        }
-
-        // リツイートボタンの処理
-        handleButtonClick('.retweet-btn', 'retweet', (button, data) => {
-            alert(data.message);
         });
+    });
+}
+
+// リツイートボタンの処理
+handleButtonClick('.retweet-btn', 'retweet', (button, data) => {
+    alert(data.message);  // 日本語の成功メッセージを表示
+});
+
 
         // いいねボタンの処理
         handleButtonClick('.like-btn', 'like', (button, data) => {
             button.textContent = `Like (${data.likes_count})`;
         });
     </script>
+
 </body>
 </html>

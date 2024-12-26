@@ -6,11 +6,12 @@
     <title>Register</title>
 </head>
 <body>
-    <h1>Create an Account</h1>
+    <h1>新規アカウント作成</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Register</button>
+        <button type="submit">登録</button>
     </form>
+    <p>既にアカウントをお持ちですか？ <a href="{% url 'login' %}">ログイン</a></p>
 </body>
 </html>

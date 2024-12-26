@@ -8,6 +8,8 @@ from .models import Retweet, Tweet, Follow  # TweetとFollowモデル
 
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -63,5 +65,13 @@ def register(request):
 @login_required
 def retweet(request, tweet_id):
     original_tweet = Tweet.objects.get(id=tweet_id)
+    Retweet.objects.create(user=request.user, original_tweet=original_tweet)
+    return JsonResponse({'message': 'Retweeted successfully!'})
+def retweet(request, tweet_id):
+    original_tweet = get_object_or_404(Tweet, id=tweet_id)  # ツイートが存在しない場合は404エラーを返す
+    # リツイートが既に存在するか確認
+    if Retweet.objects.filter(user=request.user, original_tweet=original_tweet).exists():
+        return JsonResponse({'message': 'You already retweeted this post!'}, status=400)
+    # リツイートを作成
     Retweet.objects.create(user=request.user, original_tweet=original_tweet)
     return JsonResponse({'message': 'Retweeted successfully!'})
